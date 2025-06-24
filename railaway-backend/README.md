@@ -15,8 +15,8 @@ $ uv venv
 # activate the venv
 $ source .venv/bin/activate
 
-# install requirements
-$ uv pip install -r requirements.txt
+# install dependencies
+$ uv sync
 
 # lint and format
 $ uv run ruff format && uv run ruff check --fix
