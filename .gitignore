@@ -192,3 +192,27 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+railaway-frontend/.DS_Store
+railaway-frontend/node_modules
+railaway-frontend/dist
+
+
+# local env files
+railaway-frontend/.env.local
+railaway-frontend/.env.*.local
+
+# Log files
+railaway-frontend/npm-debug.log*
+railaway-frontend/yarn-debug.log*
+railaway-frontend/yarn-error.log*
+railaway-frontend/pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
