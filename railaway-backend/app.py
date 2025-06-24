@@ -3,10 +3,13 @@ import pandas as pd
 from utils import find_recommendations
 from utils import clean_stop_features
 
+from flask_cors import CORS
+
 SAMPLE_DATA_PATH = "data/test-2.csv"
 PARAMETRIC_TRAVEL = 0.30  # a maximum of 30% of time is devoted to travel
 
 app = Flask(__name__)
+CORS(app)  # enable CORS (Cross-Origin Resource Sharing)
 
 # Load CSV into memory once at startup
 DATAFRAME_CACHE = pd.read_csv(SAMPLE_DATA_PATH)
