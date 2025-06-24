@@ -1,0 +1,9 @@
+[project]
+name = "railaway-backend"
+version = "0.1.0"
+description = "Backend for the RailAway project"
+dependencies = [
+  "flask",
+  "pandas",
+  "flask-cors"
+]
