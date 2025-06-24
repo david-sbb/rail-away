@@ -1,25 +1,43 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 from utils import find_recommendations
+from utils import clean_stop_features
 
-SAMPLE_DATA_PATH = "data/sample_data.csv"
+SAMPLE_DATA_PATH = "data/test.csv"
 PARAMETRIC_TRAVEL = 0.30  # a maximum of 30% of time is devoted to travel
 
 app = Flask(__name__)
 
 # Load CSV into memory once at startup
 DATAFRAME_CACHE = pd.read_csv(SAMPLE_DATA_PATH)
-DATAFRAME_CACHE["starting_point_lon"] = pd.to_numeric(
-    DATAFRAME_CACHE["starting_point_lon"], errors="coerce"
+DATAFRAME_CACHE = DATAFRAME_CACHE.rename(
+    columns={
+        "from_stop_id": "start_station_id",
+        "from_stop_name": "start_station_name",
+        "from_stop_lon": "start_station_lon",
+        "from_stop_lat": "start_station_lat",
+        "to_stop_id": "end_station_id",
+        "to_stop_name": "end_station_name",
+        "to_stop_lon": "end_station_lon",
+        "to_stop_lan": "end_station_lat",  # typo fixed: should be 'lat'
+    }
 )
-DATAFRAME_CACHE["starting_point_lat"] = pd.to_numeric(
-    DATAFRAME_CACHE["starting_point_lat"], errors="coerce"
+DATAFRAME_CACHE["start_station_lon"] = pd.to_numeric(
+    DATAFRAME_CACHE["start_station_lon"], errors="coerce"
 )
-DATAFRAME_CACHE["time_travel"] = pd.to_numeric(
-    DATAFRAME_CACHE["time_travel"], errors="coerce"
+DATAFRAME_CACHE["start_station_lat"] = pd.to_numeric(
+    DATAFRAME_CACHE["start_station_lat"], errors="coerce"
+)
+DATAFRAME_CACHE["travel_time"] = pd.to_numeric(
+    DATAFRAME_CACHE["travel_time"], errors="coerce"
+)
+
+
+DATAFRAME_CACHE["stop_features"] = DATAFRAME_CACHE["stop_features"].apply(
+    clean_stop_features
 )
 DATAFRAME_CACHE.dropna(
-    subset=["starting_point_lon", "starting_point_lat", "time_travel"], inplace=True
+    subset=["start_station_lon", "start_station_lat", "travel_time"], inplace=True
 )
 
 
@@ -51,15 +69,11 @@ def reload_data():
     global DATAFRAME_CACHE
     try:
         df = pd.read_csv("data.csv")
-        df["starting_point_lon"] = pd.to_numeric(
-            df["starting_point_lon"], errors="coerce"
-        )
-        df["starting_point_lat"] = pd.to_numeric(
-            df["starting_point_lat"], errors="coerce"
-        )
-        df["time_travel"] = pd.to_numeric(df["time_travel"], errors="coerce")
+        df["from_stop_lon"] = pd.to_numeric(df["from_stop_lon"], errors="coerce")
+        df["from_stop_lat"] = pd.to_numeric(df["from_stop_lat"], errors="coerce")
+        df["travel_time"] = pd.to_numeric(df["travel_time"], errors="coerce")
         df.dropna(
-            subset=["starting_point_lon", "starting_point_lat", "time_travel"],
+            subset=["from_stop_lon", "from_stop_lat", "travel_time"],
             inplace=True,
         )
         DATAFRAME_CACHE = df
