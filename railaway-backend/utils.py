@@ -44,7 +44,7 @@ def find_recommendations(
     ]
 
     # Return top 3 by time_travel
-    top_results = filtered.sort_values("travel_time").head(3)
+    top_results = filtered.drop(columns=["stop_features"]).sort_values("travel_time").head(3)
     return top_results.to_dict(orient="records")
 
 

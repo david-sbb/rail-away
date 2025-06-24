@@ -3,7 +3,7 @@ import pandas as pd
 from utils import find_recommendations
 from utils import clean_stop_features
 
-SAMPLE_DATA_PATH = "../data/test.csv"
+SAMPLE_DATA_PATH = "data/test-2.csv"
 PARAMETRIC_TRAVEL = 0.30  # a maximum of 30% of time is devoted to travel
 
 app = Flask(__name__)
