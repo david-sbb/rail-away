@@ -3,25 +3,17 @@
     <!-- Enhanced Title Section -->
     <div class="bg-secondary-subtle text-danger p-4 rounded shadow-sm mb-5">
       <h1 class="text-center fw-bold display-6 mb-0" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-        Ready to plan your perfect trip for your time?
+        Ready to plan the perfect trip ?
       </h1>
     </div>
 
-    <!-- Start Time Picker -->
-    <div class="mb-4 text-center d-flex justify-content-center flex-column">
-      <label class="form-label fw-semibold text-danger d-block">Select Start Time</label>
-      <input
-          type="time"
-          class="form-control w-50 mx-auto text-center"
-          v-model="startTime"
-      />
-    </div>
+
 
     <hr class="my-4"/>
 
     <!-- Time Spent Slider -->
     <div class="mb-4 text-center">
-      <label class="form-label fw-semibold text-danger d-block">Time Spent</label>
+      <label class="form-label fw-semibold text-danger d-block">Time to spend</label>
       <input
           type="range"
           class="form-range w-75 mx-auto"
@@ -35,35 +27,33 @@
     </div>
 
     <hr class="my-4"/>
-
-    <!-- Activities Section -->
     <div class="pb-5">
       <h2 class="h5 text-center mb-3 text-danger">Select an Activity</h2>
 
-      <div class="d-flex flex-row flex-nowrap overflow-auto gap-3 px-3 pb-2">
-        <button
+      <div class="d-flex flex-row flex-nowrap justify-content-center overflow-auto gap-3 px-3 pb-2">
+        <div
             v-for="activity in activities"
             :key="activity.value"
             @click="selectActivity(activity.value)"
-            :class="[
-    'btn',
-    'btn-outline-danger',
-    'rounded-pill',
-    'px-4',
-    'py-2',
-    'fw-semibold',
-    selectedActivity === activity.value ? 'btn-danger text-white' : ''
-  ]"
+            class="activity-card position-relative text-white rounded overflow-hidden"
+            :class="{'selected': selectedActivity === activity.value}"
         >
-          {{ activity.label }}
-        </button>
+          <img
+              :src="activity.image"
+              alt="activity image"
+              class="w-100 h-100 object-fit-cover"
+          />
+          <div class="overlay position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center">
+            <span class="fs-5 fw-semibold text-center px-2">{{ activity.label }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Bottom-right Fixed Action Button -->
   <button
-      class="btn btn-danger position-fixed bottom-0 end-0 m-4 rounded-pill px-4 py-2 shadow"
+      class="btn btn-danger position-fixed bottom-0 end-0 m-4 fw-bold rounded-pill px-5 py-3 shadow fs-5"
       @click="goToNextPage"
   >
     Plan Trip →
@@ -89,9 +79,9 @@ const formattedTime = computed(() =>
 );
 
 const activities = [
-  { label: 'Hiking', value: 'hiking' },
-  { label: 'Swim', value: 'swimming_pool' },
-  { label: 'Museum', value: 'museum' }
+  { value: 'museum', label: 'Museum', image: 'https://images.unsplash.com/photo-1514905552197-0610a4d8fd73?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { value: 'hiking', label: 'Hiking', image: 'https://images.unsplash.com/photo-1465188162913-8fb5709d6d57?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+  { value: 'swimming', label: 'Swimming', image: 'https://images.unsplash.com/photo-1438029071396-1e831a7fa6d8?q=80&w=1450&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
 ];
 const selectedActivity = ref<string | null>(null);
 
@@ -101,7 +91,7 @@ function selectActivity(activityValue: string) {
 }
 
 const router = useRouter();
-let city;
+let city = ref<string | null>(null);
 
 let location;
 
@@ -114,7 +104,8 @@ onMounted(() => {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${location.latitude}&lon=${location.longitude}&format=json`);
       const data = await response.json();
 
-      city = data.address.city || data.address.town || data.address.village || 'Unknown location';
+      city.value = data.address.suburb;
+      console.log(city)
     }, error => {
       console.error('Geolocation error:', error);
       city.value = 'Permission denied or unavailable';
@@ -155,4 +146,28 @@ async function goToNextPage() {
   }
 }
 </script>
+<style>
+.activity-card {
+  width: 180px;
+  height: 120px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex: 0 0 auto;
+  border: 2px solid transparent;
+}
+
+.activity-card:hover {
+  transform: scale(1.03);
+}
+
+.activity-card.selected {
+  border-color: #dc3545; /* Bootstrap danger color */
+  box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+}
+
+.object-fit-cover {
+  object-fit: cover;
+}
+
+</style>
 

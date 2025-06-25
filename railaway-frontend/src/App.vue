@@ -1,5 +1,4 @@
 <template>
-  <!--
   <header class="app-header">
     <div class="burger-menu">
 
@@ -12,7 +11,7 @@
   <nav v-if="menuOpen" class="nav-menu">
     <router-link to="/">Home</router-link>
     <router-link to="/about">About</router-link>
-  </nav>-->
+  </nav>
 
   <router-view />
 </template>

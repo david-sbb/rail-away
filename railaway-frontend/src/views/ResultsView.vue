@@ -14,10 +14,12 @@
             v-for="(segment, index) in poiSegments"
             :key="index"
             class="border rounded p-3 mb-4 shadow-sm bg-light"
+            :class="{'border-danger bg-white shadow border-3': selectedSegmentIndex === index}"
+            @click="selectSegment(index)"
+            style="cursor: pointer;"
         >
           <div class="row align-items-center">
             <div class="col-md-3 text-center">
-              <div><strong>Start Station</strong></div>
               <div>{{ segment.start }}</div>
             </div>
 
@@ -29,7 +31,6 @@
             </div>
 
             <div class="col-md-3 text-center">
-              <div><strong>End Station</strong></div>
               <div>{{ segment.end }}</div>
             </div>
           </div>
@@ -64,7 +65,8 @@ const tripData = window.history.state as {
   recommendations: any
 };
 
-
+const selectedSegmentIndex = ref<number | null>(null);
+const polylineLayers = ref<L.Polyline[]>([]);
 // 🧠 Reactive wrapper for display
 const poiSegments = computed(() =>
     tripData.recommendations.map((segment) => ({
@@ -78,6 +80,18 @@ const poiSegments = computed(() =>
 
 
 const userLocation = ref<{ latitude: number; longitude: number } | null>(null);
+
+function selectSegment(index: number) {
+  selectedSegmentIndex.value = index;
+
+  polylineLayers.value.forEach((polyline, i) => {
+    polyline.setStyle({
+      color: i === index ? 'red' : 'gray',
+      opacity: i === index ? 1.0 : 0.5,
+      weight: i === index ? 6 : 3
+    });
+  });
+}
 
 onMounted(() => {
   const firstSegment = tripData.recommendations[0];
@@ -115,25 +129,29 @@ onMounted(() => {
     const startLatLng = [segment.start_station_lat, segment.start_station_lon] as [number, number];
     const endLatLng = [segment.end_station_lat, segment.end_station_lon] as [number, number];
 
-    // Add markers with conditional icons
-// Start marker
     if (index === 0) {
       L.marker(startLatLng, {icon: startIcon})
           .addTo(map)
           .bindPopup(segment.start_station_name);
     }
 
-// End marker
-
     L.marker(endLatLng, {icon: endIcon})
         .addTo(map)
         .bindPopup(segment.end_station_name);
 
+    const polyline = L.polyline([startLatLng, endLatLng], {
+      color: 'gray',
+      weight: 4,
+      opacity: 0.6,
+      smoothFactor: 1
+    }).addTo(map);
+
+    polylineLayers.value.push(polyline);
+
     bounds.extend(startLatLng);
     bounds.extend(endLatLng);
-
-    polylinePoints.push(startLatLng, endLatLng); // Add both to the polyline path
   });
+
 
   // Draw red polyline through all points
   L.polyline(polylinePoints, {
@@ -151,7 +169,9 @@ onMounted(() => {
   });
 
   userLocation.value = {latitude: initialLat, longitude: initialLng};
+  selectSegment(0);
 });
+
 
 </script>
 
@@ -162,6 +182,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.border-primary {
+  border-color: #0d6efd !important;
 }
 
 /* Top half: map */
