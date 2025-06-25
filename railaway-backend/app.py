@@ -5,7 +5,7 @@ from utils import clean_stop_features
 
 from flask_cors import CORS
 
-SAMPLE_DATA_PATH = "data/test-2.csv"
+SAMPLE_DATA_PATH = "data/export_2.csv"
 PARAMETRIC_TRAVEL = 0.30  # a maximum of 30% of time is devoted to travel
 
 app = Flask(__name__)

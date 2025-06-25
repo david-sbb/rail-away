@@ -3,6 +3,8 @@ from typing import List, Dict
 from math import radians, sin, cos, sqrt, atan2
 import json
 
+import ast
+
 
 def haversine(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     R = 6371.0
@@ -39,13 +41,41 @@ def find_recommendations(
     # Filter data
     filtered = df[
         (df["start_station_id"] == closest_sp_id)
-        # & (df["stop_features"] == activity)
         & (df["travel_time"] <= travel_percentage * time_to_spend)
-    ]
+    ].copy()
 
-    # Return top 3 by time_travel
-    top_results = filtered.sort_values("travel_time").head(3)
+    # Normalize 'type' column to ensure it's always a list
+    filtered["type"] = filtered["type"].apply(normalize_type_column)
+
+    # Filter by activity inside the list
+    filtered = filtered[filtered["type"].apply(lambda types: activity in types)].copy()
+
+    # Keep only the first matching stop_feature for the activity
+    filtered["stop_features"] = filtered.apply(
+        lambda row: extract_first_matching_feature(row, activity), axis=1
+    )
+
+    # Return first 5 results, excluding full stop_feature list
+    top_results = filtered.head(5).drop(columns=["type"])
+
     return top_results.to_dict(orient="records")
+
+
+def extract_first_matching_feature(row, activity):
+    types = row["type"]
+    features_str = row["stop_features"]
+
+    # Parse stringified list into actual list
+    try:
+        features = json.loads(features_str)
+    except (TypeError, json.JSONDecodeError):
+        return []
+
+    if isinstance(types, list) and isinstance(features, list):
+        for index, activity_type in enumerate(types):
+            if activity_type == activity and index < len(features):
+                return features[index]
+    return []
 
 
 def clean_stop_features(raw: str) -> str | None:
@@ -55,3 +85,14 @@ def clean_stop_features(raw: str) -> str | None:
         return fixed  # Return as a readable JSON string
     except Exception:
         return None
+
+
+def normalize_type_column(x):
+    if isinstance(x, str):
+        try:
+            return ast.literal_eval(x)
+        except (ValueError, SyntaxError):
+            return []
+    elif isinstance(x, list):
+        return x
+    return []
