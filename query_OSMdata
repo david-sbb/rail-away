@@ -1,0 +1,58 @@
+Query Data from OSM with overpass, via API or at www.overpass-turbo.eu
+
+
+
+[out:json][timeout:180];
+
+// 1. Definiere das Suchgebiet "Schweiz"
+area["ISO3166-1"="CH"]->.swiss;
+
+// 2. Sammle Haltestellen innerhalb der Schweiz (diverse Varianten)
+(
+ // node["public_transport"="platform"]({{bbox}});
+ node["railway"="station"](area.swiss);
+// node["highway"="bus_stop"](area.swiss);
+)->.stops;
+
+// 3. Suche nach Hiking-Features in der Nähe der gesammelten Haltestellen (Radius 500 Meter)
+(
+  // Hiking-Routen (als node, way oder relation)
+  node["route"="hiking"](around.stops:500);
+  way["route"="hiking"](around.stops:500);
+  relation["route"="hiking"](around.stops:500);
+
+  // Trailheads (Startpunkte, häufig mit information=trailhead markiert)
+  node["information"="trailhead"](around.stops:500);
+  way["information"="trailhead"](around.stops:500);
+  relation["information"="trailhead"](around.stops:500);
+)->.hiking;
+
+// 2. Sammle Badegelegenheiten und Museen in diesem Umkreis
+(
+  // Badegelegenheiten: häufig als naturaler Schwimmbereich oder Pool gekennzeichnet
+  node["leisure"="swimming_area"](around.stops:500);
+  way["leisure"="swimming_area"](around.stops:500);
+  relation["leisure"="swimming_area"](around.stops:500);
+  
+  node["leisure"="swimming_pool"](around.stops:500);
+  way["leisure"="swimming_pool"](around.stops:500);
+  relation["leisure"="swimming_pool"](around.stops:500);
+)->.swimming;
+(
+  // Museen: in OSM meist mit tourism=museum markiert
+  node["tourism"="museum"](around.stops:500);
+  way["tourism"="museum"](around.stops:500);
+  relation["tourism"="museum"](around.stops:500);
+)->.culture;
+
+// 3. Gib als Ergebnis die Haltestellen und die Hiking-Features aus
+(
+  .stops;
+  .hiking;
+  .swimming;
+  .culture;
+);
+
+out body;
+>;
+out skel qt;
