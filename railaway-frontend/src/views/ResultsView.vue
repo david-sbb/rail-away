@@ -5,7 +5,8 @@
 
     <!-- Results View (Bottom 50%) -->
     <div class="results-view">
-      <h2 class="mb-4">Event Summary</h2>
+      <hr class="my-4 border border-success mt-0 border-3 w-75 mx-auto">
+
       <div v-if="!userLocation">Fetching your location...</div>
 
       <div v-else class="scroll-content">
@@ -80,55 +81,76 @@ const userLocation = ref<{ latitude: number; longitude: number } | null>(null);
 
 onMounted(() => {
   const firstSegment = tripData.recommendations[0];
+  const lastSegment = tripData.recommendations[tripData.recommendations.length - 1];
+
   const initialLat = firstSegment.start_station_lat;
   const initialLng = firstSegment.start_station_lon;
 
   const map = L.map('map');
 
-// Tile layer
+  // Tile layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-// Add all points and collect bounds
-  const bounds = L.latLngBounds([]);
+  // Custom icons
+  const startIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/5193/5193769.png', // green flag
+    iconSize: [40, 40],
+    iconAnchor: [16, 40],
+    popupAnchor: [0, -40]
+  });
 
-  tripData.recommendations.forEach(segment => {
+  const endIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2107/2107961.png', // red flag
+    iconSize: [40, 40],
+    iconAnchor: [0, 40],
+    popupAnchor: [0, -40]
+  });
+
+  const bounds = L.latLngBounds([]);
+  const polylinePoints: [number, number][] = [];
+
+  tripData.recommendations.forEach((segment, index) => {
     const startLatLng = [segment.start_station_lat, segment.start_station_lon] as [number, number];
     const endLatLng = [segment.end_station_lat, segment.end_station_lon] as [number, number];
 
-    L.marker(startLatLng).addTo(map).bindPopup(segment.start_station_name);
-    L.marker(endLatLng).addTo(map).bindPopup(segment.end_station_name);
+    // Add markers with conditional icons
+// Start marker
+    if (index === 0) {
+      L.marker(startLatLng, {icon: startIcon})
+          .addTo(map)
+          .bindPopup(segment.start_station_name);
+    }
 
-    bounds.extend(startLatLng);
-    bounds.extend(endLatLng);
-  });
+// End marker
 
-// Fit the map to show all markers
-  map.fitBounds(bounds, {
-    padding: [60, 60],
-    maxZoom: 14,       // Optional: don’t zoom in too far
-    animate: true      // Optional: smooth transition
-  });
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  userLocation.value = {latitude: initialLat, longitude: initialLng};
-
-  // Add start/end markers
-  tripData.recommendations.forEach(segment => {
-    L.marker([segment.start_station_lat, segment.start_station_lon])
-        .addTo(map)
-        .bindPopup(segment.start_station_name);
-
-    L.marker([segment.end_station_lat, segment.end_station_lon])
+    L.marker(endLatLng, {icon: endIcon})
         .addTo(map)
         .bindPopup(segment.end_station_name);
 
+    bounds.extend(startLatLng);
+    bounds.extend(endLatLng);
 
+    polylinePoints.push(startLatLng, endLatLng); // Add both to the polyline path
   });
+
+  // Draw red polyline through all points
+  L.polyline(polylinePoints, {
+    color: 'red',
+    weight: 4,
+    opacity: 0.8,
+    smoothFactor: 1
+  }).addTo(map);
+
+  // Fit the map
+  map.fitBounds(bounds, {
+    padding: [60, 60],
+    maxZoom: 14,
+    animate: true
+  });
+
+  userLocation.value = {latitude: initialLat, longitude: initialLng};
 });
 
 </script>

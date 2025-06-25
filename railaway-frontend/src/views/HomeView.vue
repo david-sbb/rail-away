@@ -43,19 +43,19 @@
       <div class="d-flex flex-row flex-nowrap overflow-auto gap-3 px-3 pb-2">
         <button
             v-for="activity in activities"
-            :key="activity"
-            @click="selectActivity(activity)"
+            :key="activity.value"
+            @click="selectActivity(activity.value)"
             :class="[
-            'btn',
-            'btn-outline-danger',
-            'rounded-pill',
-            'px-4',
-            'py-2',
-            'fw-semibold',
-            selectedActivity === activity ? 'btn-danger text-white' : ''
-          ]"
+    'btn',
+    'btn-outline-danger',
+    'rounded-pill',
+    'px-4',
+    'py-2',
+    'fw-semibold',
+    selectedActivity === activity.value ? 'btn-danger text-white' : ''
+  ]"
         >
-          {{ activity }}
+          {{ activity.label }}
         </button>
       </div>
     </div>
@@ -88,12 +88,16 @@ const formattedTime = computed(() =>
         : `${selectedTime.value / 60}h`
 );
 
-const activities = ['Hiking', 'Swimming', 'Cycling', 'Museum', 'Picnic', 'Shopping'];
+const activities = [
+  { label: 'Hiking', value: 'hiking' },
+  { label: 'Swim', value: 'swimming_pool' },
+  { label: 'Museum', value: 'museum' }
+];
 const selectedActivity = ref<string | null>(null);
 
 
-function selectActivity(activity: string) {
-  selectedActivity.value = activity;
+function selectActivity(activityValue: string) {
+  selectedActivity.value = activityValue;
 }
 
 const router = useRouter();
@@ -131,44 +135,11 @@ async function goToNextPage() {
       activity: selectedActivity.value == null ? 'park' : selectedActivity.value
     });
 
-    const rawSegments =
-        {
-          end_station_id: 8506206,
-          end_station_lat: 47.46241308,
-          end_station_lon: 9.04099536,
-          end_station_name: 'Wil SG',
-          start_station_id: 8506210,
-          start_station_lat: 47.41183485,
-          start_station_lon: 9.25305167,
-          start_station_name: 'Gossau SG',
-          stop_features: `{
-      "type": "Feature",
-      "properties": {
-        "route": "hiking",
-        "from": "Gossau Bhf Süd",
-        "to": "Buech"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [9.2534063, 47.4109195],
-          [9.2534209, 47.41058],
-          [9.2533347, 47.4104397],
-          [9.2549828, 47.406723],
-          [9.2577747, 47.4046376]
-        ]
-      }
-    }`,
-          travel_time: 17
-        };
-    recommendations.push(rawSegments);
-    console.log(recommendations);
-
     // Prepare real trip data to pass to the results page
     const tripData = {
       startTime: startTime.value,
       durationMinutes: selectedTime.value,
-      activity: selectedActivity.value,
+      activity:activities.filter(activity => activity.value == selectedActivity.value)[0].label,
       recommendations // actual results from the backend
     };
 
